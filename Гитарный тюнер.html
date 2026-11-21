@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Гитарный тюнер</title>
+<style>
+:root{--bg:#16181b;--panel:#24272c;--text:#f2f0ec;--dim:#8a8f98;--ok:#3ddc97;--warn:#f08a3c;--wood:#8a4b2a;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16181b}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{min-height:100vh;display:flex;justify-content:center}
+.app{width:100%;max-width:460px;padding:14px 16px 24px;display:flex;flex-direction:column;gap:10px}
+.top{display:flex;justify-content:space-between;align-items:center}
+.top h1{font-size:19px;font-weight:600;margin:0}
+.top small{color:var(--dim);display:block;font-size:13px;margin-top:2px}
+.pill{border:0;background:var(--panel);color:var(--text);padding:9px 14px;border-radius:20px;font-size:14px;cursor:pointer}
+.pill.on{background:var(--ok);color:#06210f}
+.meter{position:relative;height:150px;margin-top:6px;background:repeating-linear-gradient(90deg,#ffffff08 0 1px,transparent 1px 28px),repeating-linear-gradient(0deg,#ffffff08 0 1px,transparent 1px 28px);border-radius:14px;overflow:hidden}
+.center{position:absolute;left:50%;top:0;bottom:0;width:1px;background:#ffffff22}
+.flat,.sharp{position:absolute;top:14px;font-size:28px;color:var(--dim)}
+.flat{left:14px}.sharp{right:14px}
+.bubble{position:absolute;top:14px;left:50%;display:flex;align-items:center;gap:10px;transform:translateX(-50%);transition:left .12s linear}
+.cents{width:54px;height:54px;border-radius:50%;border:3px solid var(--warn);display:grid;place-items:center;font-size:20px;font-weight:600;background:var(--bg)}
+.hint{background:var(--panel);padding:8px 12px;border-radius:14px;font-size:15px;white-space:nowrap}
+.bubble.ok .cents{border-color:var(--ok)}
+.note{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:54px;height:54px;border-radius:50%;border:2px solid #ffffff33;display:grid;place-items:center;font-size:26px;font-weight:500}
+.note.ok{border-color:var(--ok);color:var(--ok)}
+.status{text-align:center;color:var(--dim);font-size:13px;min-height:18px}
+.head{position:relative;display:grid;grid-template-columns:62px 1fr 62px;gap:8px;align-items:center;margin-top:4px}
+.col{display:flex;flex-direction:column;gap:46px}
+.str{width:62px;height:62px;border-radius:50%;border:0;background:var(--panel);color:var(--text);font-size:22px;cursor:pointer;font-weight:500}
+.str.sel{background:#fff;color:#111}
+.str.done{box-shadow:inset 0 0 0 3px var(--ok)}
+.neck{position:relative;height:300px}
+.neck svg{width:100%;height:100%;display:block}
+.row{display:flex;gap:10px}
+.row .pill{flex:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div><h1>Гитара 6 струн</h1><small>Стандартный строй</small></div>
+    <button class="pill" id="mic">Включить микрофон</button>
+  </div>
+
+  <div class="meter" id="meter">
+    <div class="center"></div>
+    <span class="flat">♭</span><span class="sharp">♯</span>
+    <div class="bubble" id="bubble"><div class="cents" id="cents">0</div><div class="hint" id="hint">Сыграйте струну</div></div>
+    <div class="note" id="note">–</div>
+  </div>
+  <div class="status" id="status">Нажмите «Включить микрофон» и тронь­те струну</div>
+
+  <div class="head">
+    <div class="col" id="left"></div>
+    <div class="neck">
+      <svg viewBox="0 0 200 300" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <defs><linearGradient id="w" x1="0" x2="1"><stop offset="0" stop-color="#7a3f22"/><stop offset=".5" stop-color="#9a5530"/><stop offset="1" stop-color="#6e3a1f"/></linearGradient></defs>
+        <path d="M50 70 Q50 40 66 36 Q86 30 100 10 Q114 30 134 36 Q150 40 150 70 L150 215 Q150 250 134 270 L134 300 L66 300 L66 270 Q50 250 50 215Z" fill="url(#w)" stroke="#f1e3cf" stroke-width="2.5"/>
+        <g stroke="#cfd3d8" stroke-width="1.6" id="strings"></g>
+        <g fill="#c8ccd2" stroke="#6c7078">
+          <circle cx="62" cy="68" r="7"/><circle cx="64" cy="128" r="7"/><circle cx="64" cy="188" r="7"/>
+          <circle cx="138" cy="68" r="7"/><circle cx="136" cy="128" r="7"/><circle cx="136" cy="188" r="7"/>
+        </g>
+      </svg>
+    </div>
+    <div class="col" id="right"></div>
+  </div>
+
+  <div class="row">
+    <button class="pill on" id="auto">Авто: вкл</button>
+    <button class="pill" id="tone">Эталонный звук</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  // strings: order matches headstock layout (left top→bottom: D A E, right: G B E)
+  var S=[
+    {n:'D',f:146.83,side:'left',py:68,px:62,cx:98},
+    {n:'A',f:110.00,side:'left',py:128,px:64,cx:94},
+    {n:'E',f:82.41,side:'left',py:188,px:64,cx:90},
+    {n:'G',f:196.00,side:'right',py:68,px:138,cx:102},
+    {n:'B',f:246.94,side:'right',py:128,px:136,cx:106},
+    {n:'E',f:329.63,side:'right',py:188,px:136,cx:110}
+  ];
+  var $=function(id){return document.getElementById(id)};
+  var btns=[],sel=0,auto=true,ctx,an,buf,running=false,stable=0,lastIdx=-1,toneOsc=null;
+
+  // draw strings
+  var g=$('strings');
+  S.forEach(function(s){
+    var l=document.createElementNS('http://www.w3.org/2000/svg','line');
+    l.setAttribute('x1',s.px);l.setAttribute('y1',s.py);l.setAttribute('x2',s.cx);l.setAttribute('y2',300);
+    g.appendChild(l);
+  });
+  // buttons
+  S.forEach(function(s,i){
+    var b=document.createElement('button');
+    b.className='str';b.textContent=s.n;b.setAttribute('aria-label','Струна '+s.n);
+    b.onclick=function(){auto=false;updAuto();select(i);playTone(s.f)};
+    $(s.side).appendChild(b);btns.push(b);
+  });
+  function select(i){sel=i;btns.forEach(function(b,k){b.classList.toggle('sel',k===i)})}
+  function updAuto(){var a=$('auto');a.textContent='Авто: '+(auto?'вкл':'выкл');a.classList.toggle('on',auto)}
+  $('auto').onclick=function(){auto=!auto;updAuto()};
+  select(0);
+
+  function playTone(f){
+    try{
+      if(!ctx)ctx=new (window.AudioContext||window.webkitAudioContext)();
+      if(toneOsc){try{toneOsc.stop()}catch(e){}}
+      var o=ctx.createOscillator(),gn=ctx.createGain();
+      o.type='triangle';o.frequency.value=f;
+      gn.gain.setValueAtTime(0,ctx.currentTime);
+      gn.gain.linearRampToValueAtTime(.35,ctx.currentTime+.03);
+      gn.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+2);
+      o.connect(gn);gn.connect(ctx.destination);o.start();o.stop(ctx.currentTime+2.1);toneOsc=o;
+    }catch(e){}
+  }
+  $('tone').onclick=function(){playTone(S[sel].f)};
+
+  // pitch detection: normalized autocorrelation with parabolic interpolation
+  function detect(b,sr){
+    var n=b.length,rms=0,i,lag;
+    for(i=0;i<n;i++)rms+=b[i]*b[i];
+    rms=Math.sqrt(rms/n);
+    if(rms<0.008)return -1;
+    var minLag=Math.floor(sr/400),maxLag=Math.floor(sr/65);
+    var c=new Float32Array(maxLag+2);
+    for(lag=minLag-1;lag<=maxLag+1;lag++){
+      var sum=0,e1=0,e2=0;
+      for(i=0;i<n-lag;i+=2){sum+=b[i]*b[i+lag];e1+=b[i]*b[i];e2+=b[i+lag]*b[i+lag]}
+      c[lag]=sum/Math.sqrt(e1*e2+1e-12);
+    }
+    var best=-1,bv=0;
+    for(lag=minLag;lag<=maxLag;lag++)if(c[lag]>bv)bv=c[lag],best=lag;
+    if(best<0||bv<0.6)return -1;
+    // prefer shorter lag if it is a strong peak (avoid octave-down errors)
+    for(lag=minLag;lag<best;lag++){
+      if(c[lag]>bv*0.92&&c[lag]>=c[lag-1]&&c[lag]>=c[lag+1]){best=lag;break}
+    }
+    var a=c[best-1],m=c[best],z=c[best+1],d=(a-2*m+z);
+    var shift=d?0.5*(a-z)/d:0;
+    return sr/(best+shift);
+  }
+
+  function nearest(f){
+    var bi=0,bd=1e9;
+    S.forEach(function(s,i){var d=Math.abs(1200*Math.log2(f/s.f));if(d<bd)bd=d,bi=i});
+    return bi;
+  }
+
+  function show(f){
+    var i=auto?nearest(f):sel;
+    if(auto){
+      if(i===lastIdx)stable++;else{stable=0;lastIdx=i}
+      if(stable>2)select(i);
+    }
+    var t=S[i],c=Math.round(1200*Math.log2(f/t.f));
+    var cl=Math.max(-50,Math.min(50,c));
+    var ok=Math.abs(c)<=4;
+    $('cents').textContent=(c>0?'+':'')+c;
+    $('bubble').style.left=(50+cl*0.8*0.5*1)+'%';
+    $('bubble').classList.toggle('ok',ok);
+    $('hint').textContent=ok?'Строй!':(c<0?'Подтяните':'Ослабьте');
+    $('note').textContent=t.n;$('note').classList.toggle('ok',ok);
+    $('status').textContent=f.toFixed(1)+' Гц · цель '+t.f.toFixed(2)+' Гц';
+    btns[i].classList.toggle('done',ok);
+  }
+
+  function loop(){
+    if(!running)return;
+    an.getFloatTimeDomainData(buf);
+    var f=detect(buf,ctx.sampleRate);
+    if(f>0)show(f);
+    requestAnimationFrame(loop);
+  }
+
+  $('mic').onclick=async function(){
+    if(running){running=false;this.textContent='Включить микрофон';this.classList.remove('on');return}
+    try{
+      if(!ctx)ctx=new (window.AudioContext||window.webkitAudioContext)();
+      if(ctx.state==='suspended')await ctx.resume();
+      var st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+      var src=ctx.createMediaStreamSource(st);
+      an=ctx.createAnalyser();an.fftSize=4096;buf=new Float32Array(an.fftSize);
+      src.connect(an);running=true;
+      this.textContent='Микрофон включён';this.classList.add('on');
+      $('status').textContent='Слушаю… тронь­те струну';
+      loop();
+    }catch(e){
+      $('status').textContent='Нет доступа к микрофону. Разрешите его в настройках браузера или нажмите на струну, чтобы услышать эталон.';
+    }
+  };
+})();
+</script>
+</body>
+</html>

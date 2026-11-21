@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Гитарный тюнер</title>
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#16181b"><link rel="apple-touch-icon" href="icon-192.png"><link rel="icon" href="icon-192.png"><title>Гитарный тюнер</title>
 <style>
 :root{--bg:#16181b;--panel:#24272c;--text:#f2f0ec;--dim:#8a8f98;--ok:#3ddc97;--warn:#f08a3c;--wood:#8a4b2a;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16181b}}
@@ -16,19 +16,19 @@ body{min-height:100vh;display:flex;justify-content:center}
 .top small{color:var(--dim);display:block;font-size:13px;margin-top:2px}
 .pill{border:0;background:var(--panel);color:var(--text);padding:9px 14px;border-radius:20px;font-size:14px;cursor:pointer}
 .pill.on{background:var(--ok);color:#06210f}
-.meter{position:relative;height:150px;margin-top:6px;background:repeating-linear-gradient(90deg,#ffffff08 0 1px,transparent 1px 28px),repeating-linear-gradient(0deg,#ffffff08 0 1px,transparent 1px 28px);border-radius:14px;overflow:hidden}
+.meter{position:relative;height:190px;margin-top:6px;background:repeating-linear-gradient(90deg,#ffffff08 0 1px,transparent 1px 28px),repeating-linear-gradient(0deg,#ffffff08 0 1px,transparent 1px 28px);border-radius:14px;overflow:hidden}
 .center{position:absolute;left:50%;top:0;bottom:0;width:1px;background:#ffffff22}
 .flat,.sharp{position:absolute;top:14px;font-size:28px;color:var(--dim)}
 .flat{left:14px}.sharp{right:14px}
-.bubble{position:absolute;top:14px;left:50%;display:flex;align-items:center;gap:10px;transform:translateX(-50%);transition:left .12s linear}
+.bubble{position:absolute;top:12px;left:50%;transform:translateX(-50%);transition:left .08s linear}.bubble::after{content:"";position:absolute;left:50%;bottom:-9px;transform:translateX(-50%);border:7px solid transparent;border-top-color:var(--warn);border-bottom:0}.bubble.ok::after{border-top-color:var(--ok)}
 .cents{width:54px;height:54px;border-radius:50%;border:3px solid var(--warn);display:grid;place-items:center;font-size:20px;font-weight:600;background:var(--bg)}
-.hint{background:var(--panel);padding:8px 12px;border-radius:14px;font-size:15px;white-space:nowrap}
+.hint{position:absolute;left:50%;top:86px;transform:translateX(-50%);background:var(--panel);padding:8px 14px;border-radius:14px;font-size:15px;white-space:nowrap}
 .bubble.ok .cents{border-color:var(--ok)}
 .note{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:54px;height:54px;border-radius:50%;border:2px solid #ffffff33;display:grid;place-items:center;font-size:26px;font-weight:500}
 .note.ok{border-color:var(--ok);color:var(--ok)}
 .status{text-align:center;color:var(--dim);font-size:13px;min-height:18px}
 .head{position:relative;display:grid;grid-template-columns:62px 1fr 62px;gap:8px;align-items:center;margin-top:4px}
-.col{display:flex;flex-direction:column;gap:46px}
+.col{display:flex;flex-direction:column;justify-content:space-between;height:300px;padding:7px 0}
 .str{width:62px;height:62px;border-radius:50%;border:0;background:var(--panel);color:var(--text);font-size:22px;cursor:pointer;font-weight:500}
 .str.sel{background:#fff;color:#111}
 .str.done{box-shadow:inset 0 0 0 3px var(--ok)}
@@ -48,7 +48,7 @@ body{min-height:100vh;display:flex;justify-content:center}
   <div class="meter" id="meter">
     <div class="center"></div>
     <span class="flat">♭</span><span class="sharp">♯</span>
-    <div class="bubble" id="bubble"><div class="cents" id="cents">0</div><div class="hint" id="hint">Сыграйте струну</div></div>
+    <div class="bubble" id="bubble"><div class="cents" id="cents">0</div></div><div class="hint" id="hint">Сыграйте струну</div>
     <div class="note" id="note">–</div>
   </div>
   <div class="status" id="status">Нажмите «Включить микрофон» и тронь­те струну</div>
@@ -56,13 +56,13 @@ body{min-height:100vh;display:flex;justify-content:center}
   <div class="head">
     <div class="col" id="left"></div>
     <div class="neck">
-      <svg viewBox="0 0 200 300" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <svg viewBox="0 0 280 300" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
         <defs><linearGradient id="w" x1="0" x2="1"><stop offset="0" stop-color="#7a3f22"/><stop offset=".5" stop-color="#9a5530"/><stop offset="1" stop-color="#6e3a1f"/></linearGradient></defs>
-        <path d="M50 70 Q50 40 66 36 Q86 30 100 10 Q114 30 134 36 Q150 40 150 70 L150 215 Q150 250 134 270 L134 300 L66 300 L66 270 Q50 250 50 215Z" fill="url(#w)" stroke="#f1e3cf" stroke-width="2.5"/>
+        <path d="M36 62 Q36 36 58 32 Q104 24 140 4 Q176 24 222 32 Q244 36 244 62 L244 232 Q244 262 230 276 L190 296 L190 300 L90 300 L90 296 L50 276 Q36 262 36 232Z" fill="url(#w)" stroke="#f1e3cf" stroke-width="2.5"/>
         <g stroke="#cfd3d8" stroke-width="1.6" id="strings"></g>
         <g fill="#c8ccd2" stroke="#6c7078">
-          <circle cx="62" cy="68" r="7"/><circle cx="64" cy="128" r="7"/><circle cx="64" cy="188" r="7"/>
-          <circle cx="138" cy="68" r="7"/><circle cx="136" cy="128" r="7"/><circle cx="136" cy="188" r="7"/>
+          <circle cx="64" cy="38" r="8"/><circle cx="64" cy="150" r="8"/><circle cx="64" cy="262" r="8"/><rect x="2" y="23" width="30" height="30" rx="11"/><rect x="2" y="135" width="30" height="30" rx="11"/><rect x="2" y="247" width="30" height="30" rx="11"/><rect x="32" y="35" width="14" height="6"/><rect x="32" y="147" width="14" height="6"/><rect x="32" y="259" width="14" height="6"/>
+          <circle cx="216" cy="38" r="8"/><circle cx="216" cy="150" r="8"/><circle cx="216" cy="262" r="8"/><rect x="248" y="23" width="30" height="30" rx="11"/><rect x="248" y="135" width="30" height="30" rx="11"/><rect x="248" y="247" width="30" height="30" rx="11"/><rect x="234" y="35" width="14" height="6"/><rect x="234" y="147" width="14" height="6"/><rect x="234" y="259" width="14" height="6"/>
         </g>
       </svg>
     </div>
@@ -79,12 +79,12 @@ body{min-height:100vh;display:flex;justify-content:center}
 (function(){
   // strings: order matches headstock layout (left top→bottom: D A E, right: G B E)
   var S=[
-    {n:'D',f:146.83,side:'left',py:68,px:62,cx:98},
-    {n:'A',f:110.00,side:'left',py:128,px:64,cx:94},
-    {n:'E',f:82.41,side:'left',py:188,px:64,cx:90},
-    {n:'G',f:196.00,side:'right',py:68,px:138,cx:102},
-    {n:'B',f:246.94,side:'right',py:128,px:136,cx:106},
-    {n:'E',f:329.63,side:'right',py:188,px:136,cx:110}
+    {n:'D',f:146.83,side:'left',py:38,px:64,cx:132},
+    {n:'A',f:110.00,side:'left',py:150,px:64,cx:116},
+    {n:'E',f:82.41,side:'left',py:262,px:64,cx:100},
+    {n:'G',f:196.00,side:'right',py:38,px:216,cx:148},
+    {n:'B',f:246.94,side:'right',py:150,px:216,cx:164},
+    {n:'E',f:329.63,side:'right',py:262,px:216,cx:180}
   ];
   var $=function(id){return document.getElementById(id)};
   var btns=[],sel=0,auto=true,ctx,an,buf,running=false,stable=0,lastIdx=-1,toneOsc=null;
@@ -163,7 +163,7 @@ body{min-height:100vh;display:flex;justify-content:center}
     var cl=Math.max(-50,Math.min(50,c));
     var ok=Math.abs(c)<=4;
     $('cents').textContent=(c>0?'+':'')+c;
-    $('bubble').style.left=(50+cl*0.8*0.5*1)+'%';
+    show.p=(show.p||0)+(cl-(show.p||0))*0.4;$('bubble').style.left=(50+show.p*0.8)+'%';
     $('bubble').classList.toggle('ok',ok);
     $('hint').textContent=ok?'Строй!':(c<0?'Подтяните':'Ослабьте');
     $('note').textContent=t.n;$('note').classList.toggle('ok',ok);
@@ -192,10 +192,13 @@ body{min-height:100vh;display:flex;justify-content:center}
       $('status').textContent='Слушаю… тронь­те струну';
       loop();
     }catch(e){
-      $('status').textContent='Нет доступа к микрофону. Разрешите его в настройках браузера или нажмите на струну, чтобы услышать эталон.';
+      var why=(e&&e.name)||'ошибка';
+      var tip=(!window.isSecureContext)?'Страница открыта не по HTTPS.':(!navigator.mediaDevices?'Браузер не даёт доступ к микрофону в этом окне.':(why==='NotAllowedError'?'Доступ запрещён: в этом окне (или в настройках сайта) микрофон заблокирован.':(why==='NotFoundError'?'Микрофон не найден.':'Не удалось открыть микрофон.')));
+      $('status').textContent=tip+' ['+why+'] Откройте тюнер в Chrome по обычной ссылке (не внутри приложения Claude).';
     }
   };
 })();
 </script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script>
 </body>
 </html>
